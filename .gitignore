@@ -43,3 +43,24 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# =========================
+# Firebase & Security Configs
+# =========================
+
+# Android Firebase Config
+google-services.json
+**/google-services.json
+
+# iOS Firebase Config
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+
+# FlutterFire Configuration
+lib/firebase_options.dart
+
+# Keystore files
+*.jks
+*.keystore
+key.properties
