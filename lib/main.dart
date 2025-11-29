@@ -1,87 +1,115 @@
 import 'package:flutter/material.dart';
+import 'main/mainlist_page.dart';
+import 'package:firebase_core/firebase_core.dart'; // 추가
+import 'firebase_options.dart'; // 추가
 
-void main() {
+
+void main() async { // 수정
+  WidgetsFlutterBinding.ensureInitialized(); // 수정
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // 오른쪽 위 'DEBUG' 띠 제거
-      title: '심리 테스트',
+      title: 'PersonalityTest',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3 : true,
       ),
-      home: const PsychologyTestScreen(),
+      home: const MainPage(),
     );
   }
 }
 
-class PsychologyTestScreen extends StatefulWidget {
-  const PsychologyTestScreen({super.key});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
 
   @override
-  State<PsychologyTestScreen> createState() => _PsychologyTestScreenState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _PsychologyTestScreenState extends State<PsychologyTestScreen> {
-  // 간단한 테스트용 질문
-  String question = "주말에 갑자기 친구가 약속을 취소했다면?";
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
 
-  // 버튼을 눌렀을 때 실행될 함수
-  void selectAnswer(String answer) {
+  void _incrementCounter() {
     setState(() {
-      question = "선택한 답변: $answer\n\n(테스트 성공! 앱이 잘 작동합니다.)";
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
     });
-
-    // 화면 하단에 알림 메시지 띄우기
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("'$answer'을(를) 선택하셨습니다.")),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        title: const Text("심리 테스트 과제"),
-        backgroundColor: Colors.blue[100],
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // 세로 중앙 정렬
-          crossAxisAlignment: CrossAxisAlignment.stretch, // 가로 꽉 채우기
-          children: [
-            // 질문 텍스트
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text('You have pushed the button this many times:'),
             Text(
-              question,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 50), // 여백
-
-            // 답변 버튼 1
-            ElevatedButton(
-              onPressed: () => selectAnswer("앗싸! 집에서 쉰다"),
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(20)),
-              child: const Text("A. 앗싸! 집에서 쉰다 (내향형)", style: TextStyle(fontSize: 18)),
-            ),
-            const SizedBox(height: 10), // 버튼 사이 여백
-
-            // 답변 버튼 2
-            ElevatedButton(
-              onPressed: () => selectAnswer("다른 친구에게 연락한다"),
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(20)),
-              child: const Text("B. 다른 친구에게 연락해본다 (외향형)", style: TextStyle(fontSize: 18)),
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
-      ),
+      ),  floatingActionButton: FloatingActionButton(
+      onPressed: _incrementCounter,
+      tooltip: 'Increment',
+      child: const Icon(Icons.add),
+    ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
