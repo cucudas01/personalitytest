@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart'; // [추가] 광고 패키지
 import '../sub/question_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -24,11 +25,44 @@ class _MainPage extends State<MainPage> {
   int itemHeight = 50;
   late List<String> testList = List.empty(growable: true);
 
+  // [추가] 광고 관련 변수
+  BannerAd? _bannerAd;
+  bool _isBannerAdReady = false;
+
   @override
   void initState() {
     super.initState();
     _testRef = database.ref('test');
     remoteConfigInit();
+    _loadBannerAd(); // [추가] 광고 로드 시작
+  }
+
+  // [추가] 배너 광고 로드 함수
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // 테스트용 배너 ID
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
+    );
+    _bannerAd?.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose(); // [추가] 광고 메모리 해제
+    super.dispose();
   }
 
   void remoteConfigInit() async {
@@ -71,37 +105,51 @@ class _MainPage extends State<MainPage> {
         title: Text(welcomeTitle),
       )
           : null,
-      body: FutureBuilder<List<String>>(
-        future: loadAsset(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: snapshot.data!.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                Map<String, dynamic> item = jsonDecode(snapshot.data![index]);
-                return _buildTestCard(item, context);
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder<List<String>>(
+              future: loadAsset(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: snapshot.data!.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      Map<String, dynamic> item = jsonDecode(snapshot.data![index]);
+                      return _buildTestCard(item, context);
+                    },
+                  );
+                } else {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.assignment_add, size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          '테스트가 없습니다.\n아래 + 버튼을 눌러 추가해주세요.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  );
+                }
               },
-            );
-          } else {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.assignment_add, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text('테스트가 없습니다.\n아래 + 버튼을 눌러 추가해주세요.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            );
-          }
-        },
+            ),
+          ),
+          // [추가] 배너 광고 표시 영역
+          if (_isBannerAdReady)
+            SizedBox(
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
@@ -109,7 +157,6 @@ class _MainPage extends State<MainPage> {
         backgroundColor: const Color(0xFF6C63FF),
         foregroundColor: Colors.white,
         onPressed: () {
-          // 🌟 [업그레이드] 더 재미있는 테스트 데이터 추가
           _testRef.push().set({
             "title": "🥪 샌드위치 재료로 알아보는 나의 성격",
             "question": "샌드위치에 가장 넣고 싶은 재료 하나를 골라보세요!",
@@ -152,7 +199,6 @@ class _MainPage extends State<MainPage> {
     );
   }
 
-  // 🎨 카드 디자인 위젯
   Widget _buildTestCard(Map<String, dynamic> item, BuildContext context) {
     return InkWell(
       onTap: () async {
