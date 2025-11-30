@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart'; // [추가] 광고 패키지
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../sub/question_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -25,7 +25,6 @@ class _MainPage extends State<MainPage> {
   int itemHeight = 50;
   late List<String> testList = List.empty(growable: true);
 
-  // [추가] 광고 관련 변수
   BannerAd? _bannerAd;
   bool _isBannerAdReady = false;
 
@@ -34,13 +33,12 @@ class _MainPage extends State<MainPage> {
     super.initState();
     _testRef = database.ref('test');
     remoteConfigInit();
-    _loadBannerAd(); // [추가] 광고 로드 시작
+    _loadBannerAd();
   }
 
-  // [추가] 배너 광고 로드 함수
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // 테스트용 배너 ID
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // 테스트 ID
       request: const AdRequest(),
       size: AdSize.banner,
       listener: BannerAdListener(
@@ -61,7 +59,7 @@ class _MainPage extends State<MainPage> {
 
   @override
   void dispose() {
-    _bannerAd?.dispose(); // [추가] 광고 메모리 해제
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -142,7 +140,6 @@ class _MainPage extends State<MainPage> {
               },
             ),
           ),
-          // [추가] 배너 광고 표시 영역
           if (_isBannerAdReady)
             SizedBox(
               width: _bannerAd!.size.width.toDouble(),
@@ -153,43 +150,79 @@ class _MainPage extends State<MainPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
-        label: const Text("테스트 추가"),
+        label: const Text("전체 테스트 추가"),
         backgroundColor: const Color(0xFF6C63FF),
         foregroundColor: Colors.white,
         onPressed: () {
+          // 1. [기존] 애완동물 테스트
           _testRef.push().set({
-            "title": "🥪 샌드위치 재료로 알아보는 나의 성격",
-            "question": "샌드위치에 가장 넣고 싶은 재료 하나를 골라보세요!",
-            "selects": ["바삭한 베이컨", "신선한 토마토", "부드러운 치즈", "아삭한 양상추"],
+            "title": "당신이 좋아하는 애완동물은?",
+            "question": "무인도에 도착했는데, 상자를 열었을 때 보이는 것은?",
+            "selects": ["생존 키트", "휴대폰", "텐트", "무인도에서 살아남기"],
             "answer": [
-              "당신은 에너지가 넘치고 리더십이 있는 사람입니다!",
-              "당신은 섬세하고 감수성이 풍부한 예술가 타입이에요.",
-              "당신은 부드럽고 친절해 어디서나 사랑받는 평화주의자!",
-              "당신은 쿨하고 정직한 성격의 소유자입니다."
+              "당신은 현실주의!",
+              "당신은 동반자를 좋아하는 강아지형!",
+              "당신은 공간을 공유하는 고양이형!",
+              "당신은 자유로운 앵무새형!"
             ]
           });
 
+          // 2. [기존] MBTI 테스트
           _testRef.push().set({
-            "title": "🏝️ 무인도 생존 아이템 테스트",
-            "question": "무인도에 딱 하나만 가져갈 수 있다면?",
-            "selects": ["스마트폰", "나이프", "가족사진", "두꺼운 이불"],
+            "title": "5초 MBTI I/E 편",
+            "question": "친구와 함께 간 미술관 당신이라면?",
+            "selects": ["말이 많아짐", "생각이 많아짐"],
+            "answer": ["당신의 성향은 E", "당신의 성향은 I"]
+          });
+
+          // 3. [기존] 연애 성향 테스트
+          _testRef.push().set({
+            "title": "당신은 어떤 사랑을 하고 싶나요?",
+            "question": "목욕을 할 때 가장 먼저 비누칠하는 곳은?",
+            "selects": ["머리", "상체", "하체"],
             "answer": [
-              "당신은 세상과의 연결을 중시하는 소통왕!",
-              "당신은 현실적이고 문제 해결 능력이 뛰어난 생존왕!",
-              "당신은 사랑과 추억을 소중히 여기는 로맨티스트!",
-              "당신은 어떤 상황에서도 편안함을 찾는 낙천가!"
+              "당신은 자만추형이에요.",
+              "당신은 소개팅형이에요.",
+              "당신은 운명형이에요."
             ]
           });
 
+          // 4. [신규] 탕수육 테스트
           _testRef.push().set({
-            "title": "👻 귀신을 만났을 때 반응은?",
-            "question": "자다가 눈을 떴는데 귀신과 눈이 마주쳤다면?",
-            "selects": ["비명을 지른다", "다시 눈을 감고 자는 척한다", "말을 건다", "주먹을 날린다"],
+            "title": "🍖 탕수육 먹을 때 당신의 선택은?",
+            "question": "탕수육 소스가 따로 나왔다! 당신의 행동은?",
+            "selects": ["냅다 붓는다 (부먹)", "하나씩 찍어 먹는다 (찍먹)", "간장에만 찍어 먹는다", "안 먹고 지켜본다"],
             "answer": [
-              "당신은 솔직하고 감정 표현이 확실한 타입!",
-              "당신은 위기 상황을 회피하려는 신중파!",
-              "당신은 호기심이 두려움을 이기는 4차원!",
-              "당신은 행동이 앞서는 용감한 전사 타입!"
+              "당신은 융통성 있고 낙천적인 평화주의자!",
+              "당신은 자신의 영역을 중요시하는 신중한 원칙주의자!",
+              "당신은 본연의 맛을 즐길 줄 아는 고독한 미식가!",
+              "당신은 상황을 먼저 파악하는 관찰력이 뛰어난 전략가!"
+            ]
+          });
+
+          // 5. [신규] 좀비 아포칼립스 테스트
+          _testRef.push().set({
+            "title": "🧟‍♂️ 좀비 사태 발생! 당신의 무기는?",
+            "question": "눈앞에 좀비 떼가 나타났다! 당장 집어들 무기는?",
+            "selects": ["야구방망이", "저격용 라이플", "프라이팬", "구급상자"],
+            "answer": [
+              "당신은 앞장서서 돌격하는 용감한 행동대장!",
+              "당신은 뒤에서 상황을 통제하는 냉철한 리더!",
+              "당신은 요리도 하고 좀비도 잡는 생활력 만렙 생존자!",
+              "당신은 다친 동료를 챙기는 따뜻한 마음씨의 힐러!"
+            ]
+          });
+
+          // 6. [신규] 로또 당첨 테스트
+          _testRef.push().set({
+            "title": "💰 로또 1등 100억 당첨! 가장 먼저 할 일은?",
+            "question": "통장에 100억이 꽂혔다. 지금 당장 무엇을 할까?",
+            "selects": ["당장 회사에 사표 낸다", "강남에 건물부터 보러 간다", "아무에게도 말하지 않고 저축한다", "친구들 다 불러서 파티한다"],
+            "answer": [
+              "당신은 자유를 갈망하는 영혼! (퇴사 기원 1일차)",
+              "당신은 미래를 내다보는 야망 있는 투자가!",
+              "당신은 신중하고 비밀이 많은 현실적인 부자!",
+              "당신은 기쁨을 함께 나누는 의리파!"
             ]
           });
 
